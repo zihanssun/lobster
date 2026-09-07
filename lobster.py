@@ -8,10 +8,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 import os
-from dotenv import load_dotenv
-
-# 自动加载当前目录下的 .env 文件
-load_dotenv()
 
 # ==========================================
 # 1. 配置区域 (安全读取模式)
