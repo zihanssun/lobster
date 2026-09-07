@@ -64,7 +64,12 @@ def filter_and_summarize(email_list):
     for i, email in enumerate(email_list, 1):
         formatted_emails += f"\n[Email {i}]\nSender: {email['sender']}\nSubject: {email['subject']}\nContent: {email['body']}...\n"
 
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+    llm = ChatOpenAI(
+    api_key=os.getenv("DEEPSEEK_API_KEY"), 
+    base_url="https://api.deepseek.com", 
+    model="deepseek-chat",               
+    temperature=0.1
+)
 
     # 精心设计的 Prompt，要求中英夹杂、极简、高亮关键词，并进行重要性过滤
     prompt = ChatPromptTemplate.from_messages([
