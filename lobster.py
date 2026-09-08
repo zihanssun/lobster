@@ -88,14 +88,14 @@ def filter_and_summarize(email_list):
         
         Please generate the daily briefing STRICTLY using this format (pay attention to the <u> tags and dynamic emojis):
         
-        🎀 **Action Required** 🎀
-        [Dynamic Emoji] <u>[English Topic]</u>: [Cute Chinese Content] (Deadline: xxx) [End Emoji]
+        🎀 Action Required 🎀
+        [Dynamic Emoji] [English Topic]: [Cute Chinese Content] (Deadline: xxx) 
         
-        🫐 **Key Updates** 🫐
-        [Dynamic Emoji] <u>[English Topic]</u>: [Cute Chinese Content] [End Emoji]
+        🫐 Key Updates 🫐
+        [Dynamic Emoji] [English Topic]: [Cute Chinese Content] 
         
         (Skip a line)
-        🗑️ **Filtered out today**: [1-sentence summary of what you skipped, e.g., 已过滤Follett书店promo、Instagram code等junk~]
+        🗑️ Filtered out today: [1-sentence summary of what you skipped, e.g., 已过滤Follett书店promo、Instagram code等junk~]
         
         (If all emails are junk, just reply "🧸 All clear today! 今天没有重要邮件，已被我全部清空啦，早点休息哦~ ✨")
         """)
