@@ -56,7 +56,7 @@ def fetch_recent_emails(days=1):
 # 3. 核心大脑模块 (LangChain 过滤与提取)
 # ==========================================
 def filter_and_summarize(email_list):
-    """大模型进行垃圾过滤与核心特征提取（可爱升级版）"""
+    """大模型进行垃圾过滤与核心特征提取（动态Emoji + 极简下划线排版）"""
     if not email_list:
         return "🧸 All clear today! 今天没有未读邮件，好好休息哦~ ✨"
 
@@ -64,38 +64,40 @@ def filter_and_summarize(email_list):
     for i, email in enumerate(email_list, 1):
         formatted_emails += f"\n[Email {i}]\nSender: {email['sender']}\nSubject: {email['subject']}\nContent: {email['body']}...\n"
 
-    # 初始化 DeepSeek 模型
+    # 初始化 DeepSeek 模型，温度调到 0.3 让 Emoji 选择更灵活
     llm = ChatOpenAI(
         api_key=os.getenv("DEEPSEEK_API_KEY"), 
         base_url="https://api.deepseek.com", 
         model="deepseek-chat",               
-        temperature=0.2 # 稍微调高一点点温度，让 emoji 更有趣
+        temperature=0.3 
     )
 
-    # 全新优化的 Prompt：强化了语言限制、主题+内容格式，并注入了可爱的 Emoji 风格
     prompt = ChatPromptTemplate.from_messages([
         ("system", """You are a super cute, highly efficient personal assistant.
         Your task is to filter out junk emails and ONLY extract important updates (pay special attention to HKUST affairs, Data Science, iPlan startup, exams, and academic news).
         
         Strict Output Requirements:
-        1. Language: ONLY use standard English or Simplified Chinese (简体普通话). NO Traditional Chinese and NO Cantonese slang.
-        2. Tone & Style: Lively, cute, and visually pleasing. Use plenty of adorable emojis (🎀, ✨, 💌, 🐾, 🌸, 🌟).
-        3. Structure: Strictly follow the "[Email Topic] + Content" format. 
-        4. Conciseness: Keep the content extreme concise, clear, and easy to read at a glance.
+        1. Dynamic Emojis: Select highly relevant emojis based on the specific content of each email (e.g., 💻 for coding/Lab, 📈 for startup/iPlan, 📍 for location, 📅 for meetings). 
+        2. Formatting: STRICTLY follow the template. DO NOT use bullet points (no '-' or '*'). Use the HTML <u> tag to underline the English topics. 
+        3. Language & Tone: Topics MUST be in English. Content MUST be in lively, cute Simplified Chinese (简体普通话), ending with a tilde '~' or cute particles (e.g., 哦, 呀). NO Traditional Chinese.
+        4. Filtered Summary: Briefly mention the categories of junk emails you ignored at the very bottom.
         """),
         ("user", """
         Here are today's unread emails:
         {emails}
         
-        Please generate the daily briefing strictly using this format:
+        Please generate the daily briefing STRICTLY using this format (pay attention to the <u> tags and dynamic emojis):
         
-        🎀 **Action Required / 待办事项** 🎀
-        - 💌 **[Topic]**: Content (Deadline: xxx) ✨
+        🎀 **Action Required** 🎀
+        [Dynamic Emoji] <u>[English Topic]</u>: [Cute Chinese Content] (Deadline: xxx) [End Emoji]
         
-        🌸 **Key Updates / 核心动态** 🌸
-        - 🐾 **[Topic]**: Content 🌟
+        🫐 **Key Updates** 🫐
+        [Dynamic Emoji] <u>[English Topic]</u>: [Cute Chinese Content] [End Emoji]
         
-        (Skip all junk and promotional emails silently. Do NOT include greetings at the top. If all emails are junk, just reply "🧸 All clear today! 今天没有重要邮件，早点休息哦~ ✨")
+        (Skip a line)
+        🗑️ **Filtered out today**: [1-sentence summary of what you skipped, e.g., 已过滤Follett书店promo、Instagram code等junk~]
+        
+        (If all emails are junk, just reply "🧸 All clear today! 今天没有重要邮件，已被我全部清空啦，早点休息哦~ ✨")
         """)
     ])
 
