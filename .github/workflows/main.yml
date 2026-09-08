@@ -1,0 +1,31 @@
+name: Daily Lobster Report
+
+on:
+  schedule:
+    # GitHub 服务器使用的是 UTC 时间。北京/香港时间 18:00 对应 UTC 10:00。
+    - cron: '0 10 * * *'
+  workflow_dispatch: # 允许你在网页上手动点击运行，方便测试
+
+jobs:
+  feed-lobster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # 推荐使用稳定的 Python 版本
+
+      - name: Install Dependencies
+        # 安装代码所需的依赖，云端不需要 schedule 和 python-dotenv
+        run: |
+          pip install imbox langchain-openai langchain-core
+
+      - name: Run Cyber Lobster
+        env:
+          # 将你在 Settings 里配置的密码自动注入到运行环境中
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          QQ_EMAIL_PASSWORD: ${{ secrets.QQ_EMAIL_PASSWORD }}
+        run: python lobster.py
