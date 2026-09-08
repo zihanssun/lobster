@@ -56,53 +56,52 @@ def fetch_recent_emails(days=1):
 # 3. 核心大脑模块 (LangChain 过滤与提取)
 # ==========================================
 def filter_and_summarize(email_list):
-    """大模型进行垃圾过滤与核心特征提取"""
+    """大模型进行垃圾过滤与核心特征提取（可爱升级版）"""
     if not email_list:
-        return "No new emails today. Take a rest!"
+        return "🧸 All clear today! 今天没有未读邮件，好好休息哦~ ✨"
 
     formatted_emails = ""
     for i, email in enumerate(email_list, 1):
         formatted_emails += f"\n[Email {i}]\nSender: {email['sender']}\nSubject: {email['subject']}\nContent: {email['body']}...\n"
 
+    # 初始化 DeepSeek 模型
     llm = ChatOpenAI(
-    api_key=os.getenv("DEEPSEEK_API_KEY"), 
-    base_url="https://api.deepseek.com", 
-    model="deepseek-chat",               
-    temperature=0.1
-)
+        api_key=os.getenv("DEEPSEEK_API_KEY"), 
+        base_url="https://api.deepseek.com", 
+        model="deepseek-chat",               
+        temperature=0.2 # 稍微调高一点点温度，让 emoji 更有趣
+    )
 
-    # 精心设计的 Prompt，要求中英夹杂、极简、高亮关键词，并进行重要性过滤
+    # 全新优化的 Prompt：强化了语言限制、主题+内容格式，并注入了可爱的 Emoji 风格
     prompt = ChatPromptTemplate.from_messages([
-        ("system", """You are an elite Executive Assistant. 
-        Your task is to filter out junk emails (e.g., food promos, spam, useless ads) and ONLY extract important updates.
-        Pay special attention to emails related to Data Science, HKUST university affairs, academic research, or startup projects (like iPlan).
+        ("system", """You are a super cute, highly efficient personal assistant.
+        Your task is to filter out junk emails and ONLY extract important updates (pay special attention to HKUST affairs, Data Science, iPlan startup, exams, and academic news).
         
-        Output Requirements:
-        1. Keep it extremely concise (字少).
-        2. Use bilingual style (中英夹杂). 
-        3. Use English for key business/academic terms (e.g., Deadline, Action Item, Meeting, Update, Pitch).
-        4. Format with clean bullet points and emojis. Do NOT include greetings.
+        Strict Output Requirements:
+        1. Language: ONLY use standard English or Simplified Chinese (简体普通话). NO Traditional Chinese and NO Cantonese slang.
+        2. Tone & Style: Lively, cute, and visually pleasing. Use plenty of adorable emojis (🎀, ✨, 💌, 🐾, 🌸, 🌟).
+        3. Structure: Strictly follow the "[Email Topic] + Content" format. 
+        4. Conciseness: Keep the content extreme concise, clear, and easy to read at a glance.
         """),
         ("user", """
         Here are today's unread emails:
         {emails}
         
-        Please generate the daily briefing in this format:
+        Please generate the daily briefing strictly using this format:
         
-        🔴 **Action Required**
-        - [Sender/Topic]: Task description (Deadline: xxx)
+        🎀 **Action Required / 待办事项** 🎀
+        - 💌 **[Topic]**: Content (Deadline: xxx) ✨
         
-        🔵 **Key Updates**
-        - [Topic]: Core message in one sentence.
+        🌸 **Key Updates / 核心动态** 🌸
+        - 🐾 **[Topic]**: Content 🌟
         
-        (Skip all junk and promotional emails silently. If all emails are junk, just reply "All clear today, no Action Items.")
+        (Skip all junk and promotional emails silently. Do NOT include greetings at the top. If all emails are junk, just reply "🧸 All clear today! 今天没有重要邮件，早点休息哦~ ✨")
         """)
     ])
 
     chain = prompt | llm | StrOutputParser()
     print("正在调用 LLM 处理信息...")
     return chain.invoke({"emails": formatted_emails})
-
 # ==========================================
 # 4. 邮件发送模块 (SMTP)
 # ==========================================
@@ -137,5 +136,5 @@ def daily_job():
         print("今天没有未读邮件，无需发送报告。")
 
 if __name__ == "__main__":
-    print("🦞 赛博龙虾定时系统已启动。等待晚上 20:00 投喂...")
+    print("🦞 赛博龙虾定时系统已启动。等待晚上 18:00 投喂...")
     daily_job()
