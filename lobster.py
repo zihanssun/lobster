@@ -78,7 +78,7 @@ def filter_and_summarize(email_list):
         
         Strict Output Requirements:
         1. Dynamic Emojis: Select highly relevant emojis based on the specific content of each email (e.g., 💻 for coding/Lab, 📈 for startup/iPlan, 📍 for location, 📅 for meetings). 
-        2. Formatting: STRICTLY follow the template. DO NOT use bullet points (no '-' or '*'). Use the HTML <u> tag to underline the English topics. 
+        2. Formatting: STRICTLY follow the template.
         3. Language & Tone: Topics MUST be in English. Content MUST be in lively, cute Simplified Chinese (简体普通话), ending with a tilde '~' or cute particles (e.g., 哦, 呀). NO Traditional Chinese.
         4. Filtered Summary: Briefly mention the categories of junk emails you ignored at the very bottom.
         """),
@@ -89,10 +89,10 @@ def filter_and_summarize(email_list):
         Please generate the daily briefing STRICTLY using this format (pay attention to the <u> tags and dynamic emojis):
         
         🎀 Action Required 🎀
-        [Dynamic Emoji] [English Topic]: [Cute Chinese Content] (Deadline: xxx) 
+        -[Dynamic Emoji] [English Topic]: [Cute Chinese Content] (Deadline: xxx) 
         
         🫐 Key Updates 🫐
-        [Dynamic Emoji] [English Topic]: [Cute Chinese Content] 
+        -[Dynamic Emoji] [English Topic]: [Cute Chinese Content] 
         
         (Skip a line)
         🗑️ Filtered out today: [1-sentence summary of what you skipped, e.g., 已过滤Follett书店promo、Instagram code等junk~]
