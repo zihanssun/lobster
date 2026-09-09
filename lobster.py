@@ -14,12 +14,7 @@ import os
 # ==========================================
 EMAIL_ACCOUNT = "3101228410@qq.com" 
 RECEIVER_EMAIL = "zsunbq@connect.ust.hk"
-
-# 通过 os.getenv 安全读取密码，代码里不再出现明文
 EMAIL_PASSWORD = os.getenv("QQ_EMAIL_PASSWORD")
-
-# LangChain 的 OpenAI 模块默认会自动从环境变量中读取 OPENAI_API_KEY
-# 因此你甚至不需要在代码里写 os.environ["OPENAI_API_KEY"] = ... 这一行
 
 # ==========================================
 # 2. 数据抓取模块 (IMAP)
