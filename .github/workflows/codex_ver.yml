@@ -1,0 +1,31 @@
+name: Daily Lobster Report (Secure)
+
+on:
+  schedule:
+    # UTC 12:00 = Hong Kong time 20:00 (UTC+8).
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+
+jobs:
+  send-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install --disable-pip-version-check imbox langchain-openai langchain-core
+
+      - name: Generate and send report
+        env:
+          LOBSTER_MAILBOX: ${{ secrets.LOBSTER_MAILBOX }}
+          LOBSTER_MAIL_PASSWORD: ${{ secrets.LOBSTER_MAIL_PASSWORD }}
+          LOBSTER_REPORT_RECIPIENT: ${{ secrets.LOBSTER_REPORT_RECIPIENT }}
+          LOBSTER_LLM_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: python codex_ver.py
