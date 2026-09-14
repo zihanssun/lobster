@@ -2,7 +2,8 @@
 
 import os
 import smtplib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
+from zoneinfo import ZoneInfo
 from email.mime.text import MIMEText
 
 from imbox import Imbox
@@ -20,18 +21,23 @@ def secret(name: str) -> str:
 
 
 def get_unread_mail(mailbox: str, password: str) -> list[dict[str, str]]:
-    since = datetime.now() - timedelta(days=1)
+    hk_tz = ZoneInfo("Asia/Hong_Kong")
+    today = datetime.now(hk_tz).date()
+    day_start = datetime.combine(today, time.min)
+    next_day_start = day_start + timedelta(days=1)
     reports: list[dict[str, str]] = []
 
-    # Deliberately allow connection errors to fail the Actions run.
     with Imbox("imap.qq.com", username=mailbox, password=password, ssl=True) as inbox:
-        for _, message in inbox.messages(unread=True, date__gt=since):
+        for _, message in inbox.messages(
+            unread=True,
+            date__gt=day_start,
+            date__lt=next_day_start,
+        ):
             plain_parts = message.body.get("plain") or []
             html_parts = message.body.get("html") or []
-
             plain = plain_parts[0] if plain_parts else ""
             html = html_parts[0] if html_parts else ""
-            body = (plain or html).strip()
+
             reports.append(
                 {
                     "sender": message.sent_from[0]["email"] if message.sent_from else "Unknown",
@@ -39,13 +45,14 @@ def get_unread_mail(mailbox: str, password: str) -> list[dict[str, str]]:
                     "body": (plain or html).strip()[:500],
                 }
             )
-    print(f"Found {len(reports)} unread email(s).")
+
+    print(f"Found {len(reports)} unread email(s) received today.")
     return reports
 
 
 def summarize(messages: list[dict[str, str]], api_key: str) -> str:
     if not messages:
-        return "🧸 All clear today! 过去 24 小时没有新的未读邮件。"
+    return "🦞 今日邮件小报\n\n🧸 今天没有需要关注的新邮件，安心休息吧～"
 
     source = "\n\n".join(
         f"From: {item['sender']}\nSubject: {item['subject']}\nContent: {item['body']}"
@@ -55,9 +62,28 @@ def summarize(messages: list[dict[str, str]], api_key: str) -> str:
         [
             (
                 "system",
-                "Summarize important personal, HKUST, coursework, exam, iPlan, and academic "
-                "emails in concise Simplified Chinese. Keep deadlines and required actions. "
-                "Ignore promotions and say briefly what was ignored.",
+    """你是可爱的个人邮件小助手。只总结今天收到的、真正重要的邮件：
+    HKUST、课程、作业、考试、项目、iPlan、会议和必须处理的事项。
+    
+    输出必须是纯文本，绝对不要使用 Markdown。
+    禁止出现 **、#、-、*、反引号或 HTML 标签。
+    
+    严格按以下格式输出：
+    
+    🦞 今日邮件小报
+    
+    🚨 要处理
+    • 💻 主题：一句话说明要做什么；如有截止时间，写“截止：…”
+    • 📅 主题：一句话说明
+    
+    ✨ 重要更新
+    • 📚 主题：一句话摘要
+    • 📍 主题：一句话摘要
+    
+    🗑️ 已忽略
+    • 简短列出被忽略的广告、验证码或推广邮件类型
+    
+    每封重要邮件最多一条，总共最多 6 条；使用简体中文和合适 Emoji。"""
             ),
             ("user", "Emails to process:\n{source}"),
         ]
