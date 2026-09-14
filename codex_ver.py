@@ -52,7 +52,7 @@ def get_unread_mail(mailbox: str, password: str) -> list[dict[str, str]]:
 
 def summarize(messages: list[dict[str, str]], api_key: str) -> str:
     if not messages:
-    return "🦞 今日邮件小报\n\n🧸 今天没有需要关注的新邮件，安心休息吧～"
+        return "🦞 今日邮件小报\n\n🧸 今天没有需要关注的新邮件，安心休息吧～"
 
     source = "\n\n".join(
         f"From: {item['sender']}\nSubject: {item['subject']}\nContent: {item['body']}"
