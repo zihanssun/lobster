@@ -27,5 +27,5 @@ jobs:
           LOBSTER_MAILBOX: ${{ secrets.LOBSTER_MAILBOX }}
           LOBSTER_MAIL_PASSWORD: ${{ secrets.LOBSTER_MAIL_PASSWORD }}
           LOBSTER_REPORT_RECIPIENT: ${{ secrets.LOBSTER_REPORT_RECIPIENT }}
-          LOBSTER_LLM_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: python codex_ver.py
