@@ -84,7 +84,7 @@ def main() -> None:
     mailbox = secret("LOBSTER_MAILBOX")
     password = secret("LOBSTER_MAIL_PASSWORD")
     recipient = secret("LOBSTER_REPORT_RECIPIENT")
-    api_key = secret("LOBSTER_LLM_API_KEY")
+    api_key = secret("DEEPSEEK_API_KEY")
 
     messages = get_unread_mail(mailbox, password)
     report = summarize(messages, api_key)
