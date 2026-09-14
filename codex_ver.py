@@ -26,8 +26,12 @@ def get_unread_mail(mailbox: str, password: str) -> list[dict[str, str]]:
     # Deliberately allow connection errors to fail the Actions run.
     with Imbox("imap.qq.com", username=mailbox, password=password, ssl=True) as inbox:
         for _, message in inbox.messages(unread=True, date__gt=since):
-            plain = message.body.get("plain", [""])[0]
-            html = message.body.get("html", [""])[0]
+            plain_parts = message.body.get("plain") or []
+            html_parts = message.body.get("html") or []
+
+            plain = plain_parts[0] if plain_parts else ""
+            html = html_parts[0] if html_parts else ""
+            body = (plain or html).strip()
             reports.append(
                 {
                     "sender": message.sent_from[0]["email"] if message.sent_from else "Unknown",
