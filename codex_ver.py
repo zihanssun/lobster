@@ -12,6 +12,21 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
 
+import imbox.parser
+
+
+def safe_str_encode(value="", encoding=None, errors="strict"):
+    try:
+        return str(value, encoding, errors)
+    except UnicodeDecodeError:
+        charset = (encoding or "").lower().replace("-", "")
+        fallback = "gb18030" if charset in {"gb2312", "gbk"} else encoding
+        return str(value, fallback, "replace")
+
+
+imbox.parser.str_encode = safe_str_encode
+
+
 def secret(name: str) -> str:
     """Read a value injected by GitHub Actions; never store it in this file."""
     value = os.environ.get(name)
