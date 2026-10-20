@@ -11,6 +11,11 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
+import imaplib
+import re
+from email import policy
+from email.parser import BytesParser
+from email.utils import parsedate_to_datetime
 
 import imbox.parser
 
@@ -37,31 +42,74 @@ def secret(name: str) -> str:
 
 def get_unread_mail(mailbox: str, password: str) -> list[dict[str, str]]:
     hk_tz = ZoneInfo("Asia/Hong_Kong")
-    today = datetime.now(hk_tz).date()
-    day_start = datetime.combine(today, time.min)
-    next_day_start = day_start + timedelta(days=1)
-    reports: list[dict[str, str]] = []
+    now = datetime.now(hk_tz)
 
-    with Imbox("imap.qq.com", username=mailbox, password=password, ssl=True) as inbox:
-        for _, message in inbox.messages(
-            unread=True,
-            date__gt=day_start,
-            date__lt=next_day_start,
-        ):
-            plain_parts = message.body.get("plain") or []
-            html_parts = message.body.get("html") or []
-            plain = plain_parts[0] if plain_parts else ""
-            html = html_parts[0] if html_parts else ""
+    end = datetime.combine(now.date(), time(20, 0), tzinfo=hk_tz)
+    start = end - timedelta(days=1)
+    reports = []
 
-            reports.append(
-                {
-                    "sender": message.sent_from[0]["email"] if message.sent_from else "Unknown",
-                    "subject": message.subject or "(No subject)",
-                    "body": (plain or html).strip()[:500],
-                }
+    with imaplib.IMAP4_SSL("imap.qq.com", timeout=30) as inbox:
+        inbox.login(mailbox, password)
+        inbox.select("INBOX", readonly=True)
+
+        # Search broadly: IMAP date searches cannot filter by hour.
+        since = (start - timedelta(days=1)).strftime("%d-%b-%Y")
+        before = (end + timedelta(days=1)).strftime("%d-%b-%Y")
+        status, data = inbox.uid(
+            "search", None,
+            f'(UNSEEN SINCE "{since}" BEFORE "{before}")',
+        )
+        if status != "OK":
+            raise RuntimeError("Mailbox search failed")
+
+        for uid in data[0].split():
+            status, parts = inbox.uid(
+                "fetch", uid, "(INTERNALDATE BODY.PEEK[])"
             )
+            if status != "OK":
+                raise RuntimeError(f"Failed to fetch email {uid!r}")
 
-    print(f"Found {len(reports)} unread email(s) received today.")
+            for part in parts:
+                if not isinstance(part, tuple):
+                    continue
+
+                metadata, raw_email = part
+                match = re.search(
+                    rb'INTERNALDATE "([^"]+)"', metadata
+                )
+                if not match:
+                    raise RuntimeError("Email has no received timestamp")
+
+                received = parsedate_to_datetime(
+                    match.group(1).decode("ascii").replace("-", " ")
+                )
+                if not start <= received.astimezone(hk_tz) < end:
+                    continue
+
+                message = BytesParser(policy=policy.default).parsebytes(
+                    raw_email
+                )
+                body_part = message.get_body(
+                    preferencelist=("plain", "html")
+                )
+                body = ""
+                if body_part is not None:
+                    payload = body_part.get_payload(decode=True) or b""
+                    charset = body_part.get_content_charset() or "utf-8"
+                    if charset.lower().replace("-", "") in {"gb2312", "gbk"}:
+                        charset = "gb18030"
+                    try:
+                        body = payload.decode(charset, errors="replace")
+                    except LookupError:
+                        body = payload.decode("utf-8", errors="replace")
+
+                reports.append({
+                    "sender": str(message.get("From", "Unknown")),
+                    "subject": str(message.get("Subject", "(No subject)")),
+                    "body": body.strip()[:500],
+                })
+
+    print(f"Found {len(reports)} unread emails in the daily window.")
     return reports
 
 
@@ -77,7 +125,9 @@ def summarize(messages: list[dict[str, str]], api_key: str) -> str:
         [
             (
                 "system",
-    """你是可爱的个人邮件小助手。只总结前天晚上八点到当天晚上八点收到的、真正重要的邮件：
+    """你是可爱的个人邮件小助手。以下邮件已经由程序按香港时间筛选，
+    范围为昨天晚上八点（含）至今天晚上八点（不含）。
+    只总结其中真正重要的邮件，尽量控制陈列的事情越少越好：
     HKUST、课程、作业、考试、项目、iPlan、会议和必须处理的事项。
     
     输出必须是纯文本，绝对不要使用 Markdown。
